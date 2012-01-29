@@ -67,6 +67,7 @@ A String which contains any non-UTF8 character will be regarded as "binary" and 
     :printable_with_syck  => true,
     :escape_b_specific    => true,
     :escape_as_utf8       => true
+    :preserve_order       => true
   )
 
   # or simply set this for a safe roundtrip with Syck.
@@ -97,6 +98,10 @@ A String which contains any non-UTF8 character will be regarded as "binary" and 
 - :escape_as_utf8
   - default: false
   - When set to true, Ya2YAML uses Ruby-like escape sequences in UTF8 code instead of "\uXXXX" style in UCS code. It also suppresses use of "\L" and "\P" (escape sequences for LS and PS).
+
+- :preserve_order
+  - default: false
+  - When set to true, the order of keys in hashes will be the natural hash order rather than sorted alphabetically or explicitelly (usefull for syck/psych roundtrip and ruby >= 1.9.2)
 
 - :syck_compatible
   - default: false

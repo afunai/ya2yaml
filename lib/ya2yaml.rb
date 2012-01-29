@@ -54,6 +54,8 @@ class Ya2YAML
               o = (x_order <=> y_order)
               (o != 0) ? o : (x.to_s <=> y.to_s)
             }
+          elsif @options[:preserve_order]
+            hash_keys = obj.keys
           else
             hash_keys = obj.keys.sort {|x, y| x.to_s <=> y.to_s }
           end

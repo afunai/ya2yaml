@@ -137,6 +137,21 @@ class TC_Ya2YAML < Test::Unit::TestCase
     }
   end
 
+  def test_preserve_order
+    h = {}
+    h['a'] = 1
+    h['c'] = 3
+    h['b'] = 2
+    y = h.ya2yaml(
+      :preserve_order => true
+    )
+    assert_equal(
+      "--- \na: 1\nc: 3\nb: 2\n",
+      y,
+      'the natural hash order should be preserved'
+    )
+  end if RUBY_VERSION >= "1.9"
+
   def test_normalize_line_breaks
     [
       ["\n\n\n\n",           "--- \"\\n\\n\\n\\n\"\n"],
