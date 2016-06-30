@@ -61,15 +61,7 @@ class Ya2YAML
           end
           hash_keys.collect {|k|
             key = emit(k, level + 1)
-            if (
-              is_one_plain_line?(key) ||
-              key =~ /\A(#{REX_BOOL}|#{REX_FLOAT}|#{REX_INT}|#{REX_NULL})\z/x
-            )
               indent + key + ': ' + emit(obj[k], level + 1)
-            else
-              indent + '? ' + key +
-              indent + ': ' + emit(obj[k], level + 1)
-            end
           }.join('')
         end
       when NilClass
@@ -117,9 +109,9 @@ class Ya2YAML
   end
 
   def emit_string(str, level)
-    (is_string, is_printable, is_one_line, is_one_plain_line) = string_type(str)
+    (is_string, is_printable, is_one_line, is_one_plain_line, is_whitespaces_only) = string_type(str)
     if is_string
-      if is_printable
+      if is_printable && !is_whitespaces_only
         if is_one_plain_line
           emit_simple_string(str, level)
         else
@@ -187,11 +179,11 @@ class Ya2YAML
 
   def string_type(str)
     if str.respond_to?(:encoding) && (!str.valid_encoding? || str.encoding == Encoding::ASCII_8BIT)
-      return false, false, false, false
+      return false, false, false, false, false
     end
     (ucs_codes = str.unpack('U*')) rescue (
       # ArgumentError -> binary data
-      return false, false, false, false
+      return false, false, false, false, false
     )
     if (
       @options[:printable_with_syck] &&
@@ -201,9 +193,10 @@ class Ya2YAML
       return true, false, nil, false
     end
     ucs_codes.each {|ucs_code|
-      return true, false, nil, false unless is_printable?(ucs_code)
+      return true, false, nil, false, contains_only_whitespaces?(str) unless is_printable?(ucs_code)
     }
-    return true, true, is_one_line?(str), is_one_plain_line?(str)
+
+    return true, true, is_one_line?(str), is_one_plain_line?(str), contains_only_whitespaces?(str)
   end
 
   def is_printable?(ucs_code)
@@ -228,11 +221,13 @@ class Ya2YAML
 
   def is_one_plain_line?(str)
     # YAML 1.1 / 4.6.11.
-    str !~ /^([\-\?:,\[\]\{\}\#&\*!\|>'"%@`\s]|---|\.\.\.)/    &&
-    str !~ /[:\#\s\[\]\{\},]/                                  &&
-    str !~ /#{REX_ANY_LB}/                                     &&
-    str !~ /^(#{REX_BOOL}|#{REX_FLOAT}|#{REX_INT}|#{REX_MERGE}
-      |#{REX_NULL}|#{REX_TIMESTAMP}|#{REX_VALUE})$/x
+    str !~ /^([\-\?:,\[\]\{\}\#&\*!\|>'"%@`]|---|\.\.\.)/      &&
+    str !~ /[:\#\[\]\{\},]/                                    &&
+    str !~ /#{REX_ANY_LB}/
+  end
+
+  def contains_only_whitespaces?(str)
+    str.strip.empty?
   end
 
   def s_indent(level)
