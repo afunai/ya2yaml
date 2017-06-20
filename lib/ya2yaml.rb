@@ -63,7 +63,7 @@ class Ya2YAML
             key = emit(k, level + 1)
             if (
               is_one_plain_line?(key) ||
-              key =~ /\A(#{REX_BOOL}|#{REX_FLOAT}|#{REX_INT}|#{REX_NULL})\z/x
+              key =~ /\A(#{REX_BOOL}|#{REX_FLOAT}|#{REX_INT}|#{REX_NULL}|#{REX_SYMBOL})\z/x
             )
               indent + key + ': ' + emit(obj[k], level + 1)
             else
@@ -92,7 +92,8 @@ class Ya2YAML
         u_sec = (obj.usec != 0) ? sprintf(".%.6d", obj.usec) : ''
         obj.strftime("%Y-%m-%d %H:%M:%S#{u_sec} #{off_hm}")
       when Symbol
-        '!ruby/symbol ' + emit_string(obj.to_s, level)
+        prefix = @options[:use_natural_symbols] && is_one_plain_line?(obj.to_s) ? ":" : "!ruby/symbol "
+        prefix + emit_string(obj.to_s, level)
       when Range
         '!ruby/range ' + obj.to_s
       when Regexp
@@ -359,6 +360,9 @@ class Ya2YAML
     /x
     REX_VALUE = /
       =
+    /x
+    REX_SYMBOL = /
+      \A:.*
     /x
   end
 

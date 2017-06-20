@@ -358,6 +358,17 @@ class TC_Ya2YAML < Test::Unit::TestCase
 #		assert_equal(symbol3, result_symbol3)
   end
 
+  def test_roundtrip_natural_symbols
+    symbol1 = :"Batman: The Dark Knight - Why So Serious?!"
+    result_symbol1 = YAML.load(symbol1.ya2yaml(:use_natural_symbols => true))
+    assert_equal(symbol1, result_symbol1)
+
+    symbol2 = :batman
+    assert(symbol2.ya2yaml(:use_natural_symbols => true).include?(":batman"))
+    result_symbol2 = YAML.load(symbol2.ya2yaml(:use_natural_symbols => true))
+    assert_equal(symbol2, result_symbol2)
+  end
+
   def test_roundtrip_types
     objects = [
       [],
